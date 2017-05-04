@@ -9,20 +9,16 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/zhengxiaoyao0716/computer-network/webserver"
 )
 
 func main() {
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 
 	signal := flag.String("s", "run", "信号 run | scan")
-	host := flag.String("host", "localhost", "指定主机IP或域名")
+	host := flag.String("host", "127.0.0.1", "指定主机IP或域名")
 	port := flag.Int("port", -1, "指定端口号（-1表示自动检索）")
-	room := flag.String("room", "http://localhost:4001", "指定聊天室通讯地址\n"+
-		"    \t * 当聊天室地址与本机服务地址相同时\n"+
-		"    \t * (room == http://address:port)\n"+
-		"    \t * 应用将作为聊天室启动\n"+
-		"    \t\b",
-	)
 	flag.Parse()
 
 	switch *signal {
@@ -32,9 +28,9 @@ func main() {
 		fmt.Println("完成")
 		os.Exit(0)
 	case "run":
-		address := "http://" + *host + ":"
+		address := *host + ":"
 		if *port == -1 {
-			*port = 4001
+			*port = 4000
 			for true {
 				if checkAddress(address + strconv.Itoa(*port)) {
 					break
@@ -47,10 +43,8 @@ func main() {
 			log.Println("检查到连接不可用")
 			os.Exit(0)
 		}
-		if !run(address, *room) {
-			log.Println("初始化失败")
-			os.Exit(0)
-		}
+
+		run(address)
 	default:
 		flag.PrintDefaults()
 	}
@@ -76,18 +70,26 @@ func scanIPv4() {
 	}
 }
 func checkAddress(address string) bool {
-	_, err := http.Get(address)
+	_, err := http.Get("http://" + address)
 	if err == nil || !strings.Contains(err.Error(), "refused") {
 		return false
 	}
 	return true
 }
 
-func run(address string, room string) bool {
-	if address != room {
-		log.Println("Join room：", room)
-	} else {
-		log.Println("Create room：", room)
+func run(address string) {
+	s := webserver.New(address)
+
+	s.Get("/", func(req *webserver.Req) *webserver.Resp {
+		log.Println("/", req)
+		return nil
+	})
+	s.Get("/index.html", func(req *webserver.Req) *webserver.Resp {
+		log.Println("/index.html", req)
+		return nil
+	})
+
+	if err := s.Run(); err != nil {
+		log.Fatalln("Run server failed:", err)
 	}
-	return true
 }
