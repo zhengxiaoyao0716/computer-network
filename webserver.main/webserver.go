@@ -80,14 +80,7 @@ func checkAddress(address string) bool {
 func run(address string) {
 	s := webserver.New(address)
 
-	s.Get("/", func(req *webserver.Req) *webserver.Resp {
-		log.Println("/", req)
-		return nil
-	})
-	s.Get("/index.html", func(req *webserver.Req) *webserver.Resp {
-		log.Println("/index.html", req)
-		return nil
-	})
+	s.Static("/", "/html")
 
 	if err := s.Run(); err != nil {
 		log.Fatalln("Run server failed:", err)

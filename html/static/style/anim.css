@@ -1,0 +1,106 @@
+/**
+ * 动画
+ */
+
+/*色相旋转*/
+.-anim- .hue_rotate, .-anim-.hue_rotate {
+    -webkit-animation: hue_rotate 6s infinite ease;
+    animation: hue_rotate 6s infinite ease;
+}
+@-webkit-keyframes hue_rotate {
+    0% {-webkit-filter: hue-rotate(-180deg);}
+    50% {-webkit-filter: hue-rotate(0deg);}
+    100% {-webkit-filter: hue-rotate(180deg);}
+}
+@keyframes hue_rotate {
+    0% {filter: hue-rotate(-180deg);}
+    50% {filter: hue-rotate(0deg);}
+    100% {filter: hue-rotate(180deg);}
+}
+
+/*等待动画*/
+._anim- .waiting, ._anim-.waiting {
+    position: relative;
+    display: block;
+    width: 60px;
+    height: 60px;
+    margin: 30px auto;
+    border-radius: 15px;
+    background-color: #03A9F4;
+    -webkit-animation: waiting_rect 3s infinite cubic-bezier(0.5, -0.5, 1, 0.5);
+    animation: waiting_rect 3s infinite cubic-bezier(0.5, -0.5, 1, 0.5);
+}
+@-webkit-keyframes waiting_rect {
+    0% {
+        -webkit-transform: perspective(120px);
+    }
+    25% {
+        -webkit-transform: perspective(120px) rotateX(180deg);
+        background-color: #FFEB3B;
+    }
+    50% {
+        -webkit-transform: perspective(120px) rotateX(180deg) rotateY(180deg);
+        background-color: #f5f;
+    }
+    100% {
+        -webkit-transform: perspective(120px) rotateZ(90deg);
+    }
+}
+@keyframes waiting_rect {
+    0% {
+        transform: perspective(120px);
+    }
+    25% {
+        transform: perspective(120px) rotateX(180deg);
+        background-color: #FFEB3B;
+    }
+    50% {
+        transform: perspective(120px) rotateX(180deg) rotateY(180deg);
+        background-color: #f5f;
+    }
+    100% {
+        transform: perspective(120px) rotateZ(90deg);
+    }
+}
+.waiting::after {
+    position: absolute;
+    left: 5px;
+    font-size: 50px;
+    font-style:normal;
+    color: white;
+    content: "请";
+    -webkit-animation: waiting_word 3s infinite cubic-bezier(0.5, -0.5, 1, 0.5);
+    animation: waiting_word 3s infinite cubic-bezier(0.5, -0.5, 1, 0.5);
+}
+@-webkit-keyframes waiting_word {
+    0% {
+        -webkit-transform: perspective(120px);
+    }
+    25% {
+        -webkit-transform: perspective(120px) rotateX(180deg);
+        content: "稍";
+    }
+    50% {
+        -webkit-transform: perspective(120px) rotateX(180deg) rotateY(180deg);
+        content: "候";
+    }
+    100% {
+        -webkit-transform: perspective(120px) rotateZ(90deg);
+    }
+}
+@keyframes waiting_word {
+    0% {
+        transform: perspective(120px);
+    }
+    25% {
+        transform: perspective(120px) rotateX(180deg);
+        content: "稍";
+    }
+    50% {
+        transform: perspective(120px) rotateX(180deg) rotateY(180deg);
+        content: "候";
+    }
+    100% {
+        transform: perspective(120px) rotateZ(180deg);
+    }
+}

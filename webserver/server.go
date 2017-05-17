@@ -9,7 +9,9 @@ import (
 
 	"net/url"
 
-	"io"
+	"bufio"
+
+	"strconv"
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
@@ -19,6 +21,7 @@ import (
 type Server struct {
 	Addr      string
 	handleMap map[string]Handle
+	staticMap map[string]string
 }
 
 // New 创建
@@ -26,6 +29,7 @@ func New(address string) *Server {
 	return &Server{
 		Addr:      address,
 		handleMap: map[string]Handle{},
+		staticMap: map[string]string{},
 	}
 }
 
@@ -107,27 +111,29 @@ func (s *Server) Run() error {
 		go func(c net.Conn) {
 			defer c.Close()
 
+			// 读取请求
+
 			c.SetReadDeadline(time.Time{})
-			buf := make([]byte, 1024)
-			_, err := c.Read(buf)
-			if err != nil {
-				if err == io.EOF {
+			reader := bufio.NewReader(c)
+			lines := []string{}
+			for {
+				line, err := reader.ReadString('\n')
+				if err != nil {
+					log.Println(err)
 					return
 				}
-				log.Fatalln(err)
-			}
-
-			// log.Println(c.RemoteAddr())
-			// log.Println(string(buf))
-
-			lines := strings.FieldsFunc(strings.Trim(string(buf), "\n\r\x00 "), isEol)
-			if len(lines) < 0 || !strings.Contains(lines[0], "HTTP/") {
-				return
+				line = strings.TrimSpace(line)
+				if line == "" {
+					break
+				}
+				lines = append(lines, line)
 			}
 
 			req := Req{
 				Header: map[string][]string{},
 			}
+
+			// 首行
 
 			if subs := strings.Fields(lines[0]); len(subs) == 3 {
 				method, path, proto := subs[0], subs[1], subs[2]
@@ -145,6 +151,9 @@ func (s *Server) Run() error {
 			} else {
 				return
 			}
+
+			// 请求头
+
 			for _, line := range lines[1:] {
 				subs := strings.Split(line, ": ")
 				key, value := subs[0], subs[1]
@@ -154,9 +163,49 @@ func (s *Server) Run() error {
 				req.Header[key] = append(req.Header[key], value)
 			}
 
-			if handle, ok := s.handleMap[req.URL.Path]; ok {
+			// 请求体
+
+			if v, ok := req.Header["Content-Length"]; ok {
+				l, err := strconv.Atoi(v[0])
+				if err != nil {
+					log.Println(err)
+					return
+				}
+				req.Content, err = reader.Peek(l)
+				if err != nil {
+					log.Println(err)
+					return
+				}
+			}
+
+			handle, ok := s.handleMap[req.URL.Path]
+			if !ok {
+				key := req.URL.Path
+				for {
+					i := strings.LastIndex(key, "/")
+					key = key[:i]
+					path, ok := s.staticMap[key+"/"]
+					if ok {
+						handle = GetStaticHandle(path + req.URL.Path[i:])
+						break
+					}
+				}
+			}
+			if handle != nil {
 				resp := handle(&req)
-				log.Println(resp)
+				lines := []string{
+					resp.Proto + " " + strconv.Itoa(resp.StatusCode) + " " + resp.StatusText,
+				}
+				for key, value := range resp.Header {
+					for _, line := range value {
+						lines = append(lines, key+": "+line)
+					}
+				}
+				_, err := c.Write(append([]byte(strings.Join(lines, "\r\n")+"\r\n\r\n"), resp.Content...))
+				if err != nil {
+					log.Println(err)
+					return
+				}
 			}
 		}(conn)
 	}

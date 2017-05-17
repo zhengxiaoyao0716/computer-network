@@ -1,0 +1,50 @@
+/**
+ * 图层
+ */
+.-layer- {
+    position: absolute;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+}
+.-layer->div {
+    position: absolute;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    transform-origin: 50% 50%;
+    background-position: center;
+    transition: transform-origin 0.3s;
+}
+.-layer->div.blur {
+    -webkit-filter: blur(3px);
+    filter: blur(3px);
+}
+.-layer->div.blur::after {
+    position: absolute;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    opacity: 0.3;
+    content: "";
+}
+.-layer->div.smooth {
+    -webkit-animation: smooth 10s linear;
+    animation: smooth 10s linear;
+}
+.-layer->div.smooth.infinite {
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-direction: alternate;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+@-webkit-keyframes smooth {
+    0% { -webkit-transform: scale(1.0); }
+}
+@keyframes smooth {
+    0% { transform: scale(1.0); }
+}
