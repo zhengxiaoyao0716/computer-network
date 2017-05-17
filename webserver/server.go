@@ -89,13 +89,6 @@ func (s *Server) _Run() error {
 
 	return nil
 }
-func isEol(r rune) bool {
-	switch r {
-	case '\r', '\n':
-		return true
-	}
-	return false
-}
 
 // Run 开始运行
 func (s *Server) Run() error {
